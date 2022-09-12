@@ -1,0 +1,451 @@
+index.html
+
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>JQuery Plugins</title>
+
+<link rel="stylesheet" href="styles/styles.css">
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+
+integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+
+<body>
+
+<div id="dummy"></div>
+
+<!-- Babel -->
+
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Jquery -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<!-- Bootstrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+
+integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+
+crossorigin="anonymous"></script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+
+integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+
+crossorigin="anonymous"></script>
+
+<script src="js/carroussel.js"></script>
+
+<script>
+
+let options = {
+
+animation: 'fade',
+
+mode: 'auto',
+
+items: []
+
+};
+
+$.ajax({url: "gallery.json",
+
+success: function(result){
+
+options.items = data;
+
+}
+
+});
+
+$('#dummy').carroussel(options);
+
+</script>
+
+</body>
+
+</html>
+
+gallery.json
+
+[
+
+{ 'src': 'https://media.wired.com/photos/5c1ae77ae91b067f6d57dec0/master/pass/Comparison-City-MAIN-ART.jpg' },
+
+{ 'src': 'https://images.pexels.com/photos/414612/pexels-photo-414612.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500' },
+
+{ 'src': 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__340.jpg'}
+
+]
+
+js/carroussel.js
+
+'use strict';
+
+$.fn.carroussel = function (options) {
+
+/**
+
+* Instance(plugin model).
+
+*/
+
+var instance = {
+
+id: this.attr('id'),
+
+root: this,
+
+template: null,
+
+options: {
+
+items: [{ 'src': '' }],
+
+coverIndex: 0
+
+},
+
+interval: null,
+
+animationIn: function () { },
+
+animationOut: function () { }
+
+};
+
+/**
+
+* Engine.
+
+*/
+
+var run = function () {
+
+bootstrapOptions();
+
+render();
+
+};
+
+var bootstrapOptions = function () {
+
+instance.options = $.extend(instance.options, options);
+
+// Mode.
+
+if (instance.options.mode === 'auto') {
+
+play();
+
+}
+
+// Next/previous animations.
+
+let animation = { 'in': null, 'out': null };
+
+switch (instance.options.animation) {
+
+case 'slide':
+
+animation['in'] = 'slideDown';
+
+animation['out'] = 'slideUp';
+
+break;
+
+case 'fade':
+
+animation['in'] = 'fadeIn';
+
+animation['out'] = 'fadeOut';
+
+break;
+
+default:
+
+break;
+
+}
+
+instance.animationIn = function () {
+
+this[animation['in']]();
+
+};
+
+instance.animationOut = function () {
+
+return this[animation['out']]();
+
+};
+
+};
+
+var events = function () {
+
+// Icons.
+
+instance.template.find('#c-next').on('click', function (e) {
+
+e.stopPropagation();
+
+stop();
+
+next();
+
+});
+
+instance.template.find('#c-previous').on('click', function (e) {
+
+e.stopPropagation();
+
+stop();
+
+previous();
+
+});
+
+// Frame.
+
+instance.template.on({
+
+'click': function () {
+
+stop();
+
+next();
+
+},
+
+'contextmenu': function (e) {
+
+e.preventDefault();
+
+stop();
+
+previous();
+
+}
+
+});
+
+};
+
+var render = function () {
+
+let container = $('<div>', { 'class': 'c-container' });
+
+let item = $('<div/>', { 'id': 'c-item', 'class': 'c-item' });
+
+let img = $('<img/>', { 'id': 'c-img', 'class': 'c-img', 'src': options.items[instance.options.coverIndex].src });
+
+let next = $('<div/>', { 'id': 'c-next', 'class': 'c-arrow c-next' });
+
+let previous = $('<div/>', { 'id': 'c-previous', 'class': 'c-arrow c-previous' });
+
+item.append(img)
+
+container.append(item, next, previous);
+
+instance.template = container;
+
+events();
+
+instance.root.html(instance.template);
+
+};
+
+/**
+
+* Animations/Shifting.
+
+*/
+
+var shift = function () {
+
+let item = instance.template.find('#c-item');
+
+let img = instance.template.find('#c-img');
+
+// Wait for out animation to stop before working on DOM.
+
+// Also wait for next/previous image to be loaded.
+
+$.when(instance.animationOut.call(img)).done(function () {
+
+img.detach()
+
+.attr('src', options.items[instance.options.coverIndex].src)
+
+.css({ 'display': 'none' })
+
+.one('load', function () {
+
+item.append(img);
+
+instance.animationIn.call(img);
+
+});
+
+});
+
+};
+
+var next = function () {
+
+instance.options.coverIndex = instance.options.coverIndex == instance.options.items.length - 1 ?
+
+0 : instance.options.coverIndex + 1;
+
+shift();
+
+};
+
+var previous = function () {
+
+instance.options.coverIndex = instance.options.coverIndex == 0 ?
+
+instance.options.items.length - 1 : instance.options.coverIndex - 1;
+
+shift();
+
+};
+
+var play = function () {
+
+instance.interval = setInterval(function () {
+
+next();
+
+}, 3000);
+
+};
+
+var stop = function () {
+
+clearTimeout(instance.interval);
+
+};
+
+/**
+
+* Run plugin.
+
+*/
+
+run();
+
+};
+
+styles/styles.css
+
+.c-container {
+
+position: relative;
+
+width: 700px;
+
+height: 450px;
+
+border: 1px solid silver;
+
+z-index: 10;
+
+}
+
+.c-container .c-item {
+
+position: relative;
+
+float: left;
+
+width: 100%;
+
+height: 100%;
+
+background-color: silver;
+
+z-index: 15;
+
+}
+
+.c-container .c-item .c-img {
+
+/* Center image both vertically and horizontally */
+
+position: absolute;
+
+display: block;
+
+max-height: 100%;
+
+width: auto;
+
+margin: 0 auto;
+
+top: 50%;
+
+left: 50%;
+
+-ms-transform: translate(-50%, -50%);
+
+transform: translate(-50%, -50%);
+
+}
+
+.c-container .c-arrow {
+
+position: absolute;
+
+width: 0;
+
+height: 0;
+
+z-index: 20;
+
+top: 50%;
+
+-ms-transform: translateY(-50%);
+
+transform: translateY(-50%);
+
+}
+
+.c-container .c-next {
+
+left: 90%;
+
+border-top: 20px solid transparent;
+
+border-bottom: 20px solid transparent;
+
+border-left: 20px solid green;
+
+}
+
+.c-container .c-previous {
+
+right: 90%;
+
+border-top: 20px solid transparent;
+
+border-bottom: 20px solid transparent;
+
+border-right: 20px solid green;
+
+}
+
+Please note - gallery.json has to be hosted on a server and the ajax call path has to be changed to the the absolute url of the file in the server else the file would not load because of CORS policy.
+
+Thanking you.

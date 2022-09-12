@@ -1,0 +1,45 @@
+Microsoft Windows [Version 10.0.19044.1889]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\lagma>cd OneDrive\Desktop\Temp
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git init
+Initialized empty Git repository in C:/Users/lagma/OneDrive/Desktop/Temp/.git/
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git add .
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git config --global user.name "mlagmay311"
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git config --global user.email mlagmay@my.centennialcollege.ca
+
+C:\Users\lagma\OneDrive\Desktop\Temp>get commit -m "initial commit"
+'get' is not recognized as an internal or external command,
+operable program or batch file.
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git commit -m "initial commit"
+On branch master
+
+Initial commit
+
+nothing to commit (create/copy files and use "git add" to track)
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git remote add origin https://github.com/mlagmay311/marjericolagmayCOMP229Repo.git
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git branch -M main
+
+C:\Users\lagma\OneDrive\Desktop\Temp>git push -u origin main
+error: src refspec main does not match any
+error: failed to push some refs to 'https://github.com/mlagmay311/marjericolagmayCOMP229Repo.git'
+
+C:\Users\lagma\OneDrive\Desktop\Temp>
+
+
+
+
+
+
+
+
+
+
+
